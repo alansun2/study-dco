@@ -1,7 +1,65 @@
+* [spring参考文档记录](#spring参考文档记录)
+  * [Spring框架概述](#spring框架概述)
+    * [1.“spring”是什么意思？](#1spring是什么意思？)
+    * [2.spring框架的历史](#2spring框架的历史)
+    * [3.设计原则](#3设计原则)
+    * [4.反馈和贡献](#4反馈和贡献)
+    * [5.开始](#5开始)
+  * [核心技术](#核心技术)
+  * [1. The IoC Container](#1-the-ioc-container)
+    * [1.1Spring容器和Beans简介](#11spring容器和beans简介)
+    * [1.2 容器概览](#12-容器概览)
+        * [1.2.1 配置元数据](#121-配置元数据)
+        * [1.2.2 实例化容器](#122-实例化容器)
+        * [1.2.3 使用容器](#123-使用容器)
+    * [1.3 Bean概览](#13-bean概览)
+        * [1.3.1 bean的命名](#131-bean的命名)
+        * [1.3.2 实例化bean](#132-实例化bean)
+    * [1.4 依赖](#14-依赖)
+        * [1.4.1 依赖注入](#141-依赖注入)
+            * [1.基于构造器注入（Constructor-based Dependency Injection）](#1基于构造器注入（constructor-based-dependency-injection）)
+        * [构造器参数解决方案（Constructor Argument Resolution）](#构造器参数解决方案（constructor-argument-resolution）)
+        * [2.基于set的注入（Setter-based Dependency Injection）](#2基于set的注入（setter-based-dependency-injection）)
+          * [依赖解决过程](#依赖解决过程)
+        * [依赖注入的示例](#依赖注入的示例)
+      * [1.4.2 依赖关系和配置的细节](#142-依赖关系和配置的细节)
+        * [直值（基元，字符串等）(Straight Values (Primitives, Strings, and so on))](#直值（基元，字符串等）straight-values-primitives-strings-and-so-on)
+        * [The idref element](#the-idref-element)
+        * [参考其他bean（合作者（被注入的依赖bean））](#参考其他bean（合作者（被注入的依赖bean））)
+        * [Inner Beans (内部类)](#inner-beans-内部类)
+        * [集合](#集合)
+        * [集合合并](#集合合并)
+        * [强类型集合（Strongly-typed collection）](#强类型集合（strongly-typed-collection）)
+        * [NULL值和空字符串值](#null值和空字符串值)
+        * [带有p命名空间的XML快捷方式](#带有p命名空间的xml快捷方式)
+        * [带有c命名空间的XML快捷方式 （构造方法）](#带有c命名空间的xml快捷方式-（构造方法）)
+        * [复合属性名称 （Compound Property Names）](#复合属性名称-（compound-property-names）)
+        * [使用`depends-on`](#使用`depends-on`)
+        * [延迟加载](#延迟加载)
+      * [1.4.5 自动装配依赖(Autowiring Collaborators)](#145-自动装配依赖autowiring-collaborators)
+        * [自动装配的局限和缺点](#自动装配的局限和缺点)
+          * [从自动装配中排除Bean](#从自动装配中排除bean)
+        * [查找方法注入](#查找方法注入)
+        * [任意方法替换](#任意方法替换)
+      * [1.5.1 单例](#151-单例)
+      * [1.5.2 The Prototype Scope](#152-the-prototype-scope)
+        * [Initial Web Configuration](#initial-web-configuration)
+        * [Request scope](#request-scope)
+        * [Session Scope](#session-scope)
+        * [Application Scope](#application-scope)
+        * [作为依赖关系的Scoped Bean (Scoped Beans as Dependencies)](#作为依赖关系的scoped-bean-scoped-beans-as-dependencies)
+        * [Choosing the Type of Proxy to Create](#choosing-the-type-of-proxy-to-create)
+      * [1.5.5 自定义范围](#155-自定义范围)
+        * [创建自定义范围](#创建自定义范围)
+        * [使用自定义范围](#使用自定义范围)
+    * [1.6 定制Bean的本质](#16-定制bean的本质)
+
 # spring参考文档记录
+
+## Spring框架概述
 spring是一个轻量的java企业级应用开发框架，它提供了开发Java企业级应用的一切，同时支持Groovy和Kotlin，可根据应用程序的需要灵活地创建多种体系结构。spring5.1后最低支持到jdk8而且为jdk11提供了开箱即用。
 
-## 1.“spring”是什么意思？
+### 1.“spring”是什么意思？
 "spring"在不同的情况下表达不同的意思。它可以用来引用Spring Framework框架本身，它就是一切开始的地方。随着时间的推移，其他Spring项目已经构建在Spring Framework之上（比如springboot，spring-cloud）。大多数情况下，我们说“spring”
 它是指整个整个spring家族。**此参考文档是基于该基础：Spring Framework本身（不包括如spring-boot等）**。
 
@@ -18,6 +76,11 @@ For use in Jigsaw-enabled applications, the Spring Framework 5 jars come with "A
  classpath on both JDK 8 and 9+.
 ```
 
+### 2.spring框架的历史
+### 3.设计原则
+### 4.反馈和贡献
+### 5.开始
+
 [TOC]
 
 * [1.5 bean scopes](#1.5)
@@ -33,7 +96,8 @@ For use in Jigsaw-enabled applications, the Spring Framework 5 jars come with "A
 
 ## 1. The IoC Container
 This chapter covers Spring’s Inversion of Control (IoC) container.
-### 1.1Spring容器和Beans简介
+
+### 1.1 Spring容器和Beans简介
 本章介绍了控制反转（IoC）原理的Spring Framework实现。总所周知，ioc就是依赖注入。这是一个过程，通过这个过程，对象只能通过构造函数参数，工厂方法的参数或在构造或从工厂方法返回后在对象实例上设置的属性来定义它们的依赖关系（即，它
 们使用的其他对象）。然后容器在创建bean时注入这些依赖项。此过程基本上是bean本身的逆（因此名称，控制反转），通过使用类的直接构造或诸如服务定位器模式的机制来控制其依赖关系的实例化或位置。（This process is fundamentally the
  inverse (hence the name, Inversion of Control) of the bean itself controlling the instantiation or location of its dependencies by using direct construction of classes or a mechanism such as the Service 
@@ -1694,3 +1758,5 @@ beanFactory.registerScope("thread", threadScope);
 当您在FactoryBean实现中放置`<aop：scoped-proxy />`时，它是作用域的工厂bean本身，而不是从getObject（）返回的对象。
 
 ### 1.6 定制Bean的本质
+Spring Framework提供了许多可用于自定义bean特性的接口。本节将它们分组如下：
+* Lifecycle Callbacks
