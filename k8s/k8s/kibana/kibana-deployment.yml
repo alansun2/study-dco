@@ -1,0 +1,39 @@
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata: 
+  name: kibana
+spec: 
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:6.1.1
+        volumeMounts:
+        - name: nfs-kibana-data
+          mountPath: /usr/share/kibana/data
+        ports:
+        - containerPort: 5601
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://elasticsearch-service:9200
+        - name: ELASTICSEARCH_USERNAME
+          value: elastic
+        - name: ELASTICSEARCH_PASSWORD
+          value: elastic
+      imagePullSecrets:
+      - name: registrykey-1
+      volumes:
+      - name: nfs-kibana-data
+        nfs:
+          server: 10.29.46.54
+          path: /data/nfs/kibana/data
+

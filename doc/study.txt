@@ -1,0 +1,16 @@
+ReentrantLock
+
+com.google.common
+
+spring.config.name
+
+zabix
+
+ResponseBodyAdvice
+
+jooq
+
+xsi:noNamespaceSchemaLocation
+
+
+dagger2

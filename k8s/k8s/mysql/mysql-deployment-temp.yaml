@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mysql 
+  labels: 
+    name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mysql
+  template:
+    metadata:
+      labels:
+        name: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: nfsdata
+            - mountPath: /etc/mysql/conf.d
+          env:
+            - name: FOR_GODS_SAKE_PLEASE_REDEPLOY
+              value: 'THIS_STRING_IS_REPLACED_DURING_BUILD'
+      imagePullSecrets:
+        - name: registrykey-1
+      volumes:
+        - name: nfsdata
+          nfs:
+            server: 10.29.46.54
+            path: /data/nfs/mysql
+        - name: nfsconf
+          nfs:
+            server: 10.29.46.54
+            path: /data/nfs/mysql/conf

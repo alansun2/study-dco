@@ -1,0 +1,5 @@
+从远程到本地
+scp -r root@10.168.1.169:/data/tomcat/tomcat-16080-redpaper /cygdrive/d/tomcat
+
+从本地到远程
+scp -r /home/space/music/1.mp3 www.runoob.com:/home/root/others/music/001.mp3

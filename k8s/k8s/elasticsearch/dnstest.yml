@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-util
+spec:
+  containers:
+  - name: curl-util
+    image: radial/busyboxplus:curl
+    command:
+    - sh
+    - -c
+    - while true; do sleep 1; done

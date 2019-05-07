@@ -1,0 +1,24 @@
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers: 
+        - name: logstash
+          image: 10.29.46.54:5000/ehu-logstash:1.0.0
+          ports:
+          - containerPort: 9600
+      imagePullSecrets:
+      - name: registrykey-1
+

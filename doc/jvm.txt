@@ -1,0 +1,9 @@
+jstat -gcpermcapacity pid 
+
+PermGen space，全称是Permanent Generation space，指的是内存3带中的永久区域。当java中间件启动时，会将相关的jar包和.class加载到永久区域，而用就区域的空间是固定的，虽然可以设置。报这个错的原因就是在启动加载.class时，永久区域溢出了
+
+
+
+JAVA_OPTS="-server -Xmx256m -Xms256m -XX:PermSize=512M -XX:MaxPermSize=512m"
+
+2. 将相同的第三方jar文件移置到tomcat/shared/lib目录下，这样可以达到减少jar 文档重复占用内存的目的。

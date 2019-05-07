@@ -1,0 +1,12 @@
+
+## 1.omnimarkuppreviewer
+If you run multiple instances of Sublime Text, you may want to adjust the `server_port` option in order to get this plugin work again.？
+
+Sublime Text > Preferences > Package Settings > OmniMarkupPreviewer > Settings - User
+paste the following to remove the strikeout package.
+
+> {
+>    "renderer_options-MarkdownRenderer": {
+>        "extensions": ["tables", "fenced_code", "codehilite"]
+>    }
+> }

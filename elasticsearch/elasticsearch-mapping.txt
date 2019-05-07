@@ -1,0 +1,508 @@
+PUT twitter/_doc/1?op_type=create
+{
+    "user" : "kimchy",
+    "post_date" : "2009-11-15T14:12:12",
+    "message" : "trying out Elasticsearch"
+}
+
+DELETE post?pretty
+GET post/_search?_source_exclude=pics
+
+PUT post?pretty
+{
+  "settings": {
+    "number_of_shards": 1,
+    "analysis": {
+      "analyzer": {
+        "default": {
+          "type": "ik_max_word"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "cityId": {
+          "type": "long"
+        },
+        "cityName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "content": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        },
+        "cover": {
+          "type": "keyword"
+        },
+        "createTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        "delFlag": {
+          "type": "byte"
+        },
+        "isTop": {
+          "type": "long"
+        },
+        "pId": {
+          "type": "long"
+        },
+        "postId": {
+          "type": "long"
+        },
+        "postType": {
+          "type": "byte"
+        },
+        "status": {
+          "type": "short"
+        },
+        "tags": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "title": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          },
+          "boost": 2
+        },
+        "updateTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        "userId": {
+          "type": "long"
+        },
+        "pics": {
+           "properties": {
+            "imgId": {
+                "type": "long"
+            },
+            "typeId": {
+              "type": "long"
+            },
+            "imgType": {
+              "type": "integer"
+            },
+            "imgUrl": {
+              "type": "keyword"
+            }
+          }
+        },
+        "sort": {
+            "type": "long"
+        },
+        "likeQty": {
+          "type": "long"
+        },
+        "reportQty": {
+          "type": "long"
+        },
+        "answerQty": {
+          "type": "long"
+        },
+        "viewQty": {
+          "type": "long"
+        },
+        "commentQty": {
+          "type": "long"
+        },
+        "tagsId": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+
+GET post/_search
+
+#添加field
+POST post/_mapping/_doc
+{
+     "properties": {
+        "sort": {
+            "type": "long"
+        }
+    }
+}
+
+PUT test/_doc/1
+{
+  "userId": 253,
+  "nickName": "alan",
+  "update_time": "2019-2-28 11:00:00"
+}
+
+GET _cat/indices
+GET post/
+
+GET post/_search?ignore_unavailable=true
+{
+  "_source": {
+    "includes": [
+        "postId",
+        "title",
+        "content",
+        "answerQty",
+        "likeQty",
+        "isTop",
+        "sort",
+        "createTime"
+      ],
+      "excludes": "{field}"
+  },
+  "query": {
+    "function_score": {
+      "query": {
+        "bool": {
+          "must": [
+{
+  "match_all": {}
+}
+          ]
+        }
+      },
+      "script_score": {
+        "script": """
+               if(doc['likeQty'].value > 20){
+          return doc['likeQty'].value
+        }else{ return 0}
+        """
+      }
+    }
+  },
+  "from": 0, 
+  "size": 20, 
+  "sort": [
+    {
+      "isTop": {
+        "order": "asc"
+      },
+      "sort": {
+        "order": "asc"
+      },
+      "_score": "desc",
+      "createTime": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+GET post/_search
+
+GET post/_search?ignore_unavailable=true
+{
+  "_source": {
+    "includes": [
+        "userId",
+        "postId",
+        "title",
+        "answerQty",
+        "likeQty",
+        "isTop",
+        "sort",
+        "pics",
+        "createTime"
+      ]
+  },
+  "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "userId": 253
+              }
+            },
+            {
+              "match": {
+                "delFlag": 1
+              }
+            },
+            {
+              "match": {
+                "pId": 0
+              }
+            },
+            {
+              "multi_match": {
+                "query": "空调",
+                "fields": ["tags", "content", "title"]
+              }
+            }
+          ]
+        }
+      },
+  "from": 0, 
+  "size": 20, 
+  "sort": [
+    {
+      "updateTime": {
+        "order": "desc",
+        "unmapped_type": "date"
+      }
+    }
+  ]
+}
+
+GET post/_search
+{
+  "query": {
+    "ids": {
+      "values": [2,3]
+    }
+  }
+}
+
+POST post/_doc/34/_update
+{
+  "doc":{
+      "likeQty": 21
+  }
+}
+
+DELETE decorate_company_info
+PUT decorate_company_info?pretty
+{
+  "settings": {
+    "number_of_shards": 1,
+    "analysis": {
+      "analyzer": {
+        "default": {
+          "type": "ik_smart"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "dynamic": false,
+      "properties": {
+        "dciId": {
+          "type": "long"
+        },
+        "companyName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          },
+          "boost": 2
+        },
+        "address": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "companyAbstract": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "phone": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 11
+            }
+          }
+        },
+        "logo": {
+          "type": "keyword"
+        },
+        "caseCount": {
+          "type": "long"
+        },
+        "cityId": {
+          "type": "long"
+        },
+        "commentCount": {
+          "type": "long"
+        },
+        "logCount": {
+          "type": "long"
+        },
+        "score": {
+          "type": "float"
+        },
+        "pageViewCount": {
+          "type": "long"
+        },
+        "location": {
+          "type": "geo_point"
+        },
+        "validFlag": {
+          "type": "long"
+        },
+        "createTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        "updateTime": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        }
+      }
+    }
+  }
+}
+
+GET /decorate_company_info/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"match_all": {}},
+        {
+          "terms": {"cityId": [1,2,3]}
+        }
+        ,{
+          "multi_match": {
+            "query": "合肥",
+            "fields": ["companyName", "companyAbstract", "address"]
+          }
+        }
+      ]
+    }
+  }, 
+  "sort": [
+    {
+      "dciId": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+GET decorate_company_info/_search
+
+GET post/_search?pretty
+{"_source": {
+    "includes": [
+       "userId",
+       "postId",
+       "title",
+       "cover",
+       "likeQty",
+       "collectQty",
+       "isTop",
+       "sort",
+       "updateTime",
+       "tags"
+      ]
+  },  "query": {
+    "function_score": {
+      "query": {
+        "bool": {
+          "must": [
+              {
+                "match_all": {}
+              }
+          ]
+        }
+      },
+      "script_score": {
+        "script": "if(doc['likeQty'].value > 20){return doc['likeQty'].value}else{ return 0}"
+      }
+    }
+  },
+  "from": 0, 
+  "size": 20, 
+  "sort": [
+    {
+      "isTop": {
+        "order": "asc",
+        "unmapped_type": "long"
+      },
+      "sort": {
+        "order": "asc",
+        "unmapped_type": "long"
+      },
+      "_score": "desc",
+      "updateTime": {
+        "order": "desc",
+        "unmapped_type": "date"
+      }
+    }
+  ]
+}
+
+GET decorate_company_info/_search
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                  "term": {
+                    "validFlag": {
+                      "value": "1"
+                    }
+                  }
+                }
+        ,{
+          "multi_match": {
+            "query": "安徽",
+            "fields": ["companyName", "companyAbstract", "address"]
+          }
+        }            ]
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

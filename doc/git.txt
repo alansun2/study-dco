@@ -1,0 +1,75 @@
+Git有三大区 
+
+1. 工作区（未使用 git add 命令的文件）， 
+2. 暂存区（也就是git add之后的文件）（i.e. git索引）
+3. 版本库（git commit之后）
+
+Git状态（untracked、unstaged、uncommited）
+
+##reset
+git reset 主要处理commit之后的操作
+
+将HEAD引用指向给定提交
+
+git reset --soft commit 只对仓库有影响，其他文件都变为暂存
+
+git reset --mixed commit 对仓库和暂存区有影响，其他文件回到工作区 （默认）也就是未add之前
+
+git reset --hard commit  对仓库，暂存区，工作区都有影响， 也就是全没了
+
+## git diff
+  git diff 比较的是工作区和暂存区的差别
+
+  git diff --cached 比较的是暂存区和版本库的差别
+
+  git diff HEAD 可以查看工作区和版本库的差别
+
+##git rm
+1.仅仅删除暂存区的文件
+
+```git rm --cache 文件名```
+
+2.删除暂存区和工作区的文件
+
+```git rm -f 文件名```
+
+##git revert
+回滚某一次提交
+会形成一次提交
+---
+
+---
+##1.如何仅仅删除暂存区的文件
+git rm --cache 文件名
+
+##2.删除暂存区和工作区的文件 
+git rm -f 文件名
+
+##3.如何删除远程分支
+git push [远程名] :[分支名]
+
+##4.如何将本地新分支推送到远程分支
+git push [远程名] [本地分支]:[远程分支]
+
+如果远程分支名不写默认和本地分支一样
+
+##5.查看当前的本地分支与远程分支的关联关系
+git branch -vv
+
+##6.把本地分支与远程origin的分支进行关联处理
+git branch --set-upstream 本地分支 origin/远程分支
+
+push本地分支时关联远程分支
+
+git push -u origin 本地分支名
+
+##7.基于某一分支创建新分支
+git checkout -b [新分支名] 创建并切换
+
+git branch [新分支名] 创建但不切换
+
+##8切换分支
+git checkout [分支名]
+
+##9.撤销本地分支与远程分支的映射关系
+git branch --unset-upstream

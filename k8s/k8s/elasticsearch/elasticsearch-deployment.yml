@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: elasticsearch
+  name: elasticsearch
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: elasticsearch
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      initContainers:
+        - name: init-sysctl
+          image: busybox:1.27
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count=262144
+          securityContext:
+            privileged: true
+      containers:
+        - name: elasticsearch
+          image: 10.29.46.54:5000/ehu-elasticsearch:1.0.0
+          volumeMounts:
+            - name: nfs-elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9200
+              protocol: TCP
+            - containerPort: 9300
+              protocol: TCP
+          env:
+             - name: "cluster.name"
+               value: "elasticsearch-cluster"
+             - name: "ES_JAVA_OPTS"
+               value: "-Xms256m -Xmx256m"
+             - name: "ELASTIC_PASSWORD"
+               value: "elastic"
+      imagePullSecrets:
+        - name: registrykey-1
+      volumes:
+      - name: nfs-elasticsearch-data
+        nfs:
+          server: 10.29.46.54
+          path: /data/nfs/elasticsearch/data

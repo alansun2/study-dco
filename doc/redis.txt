@@ -1,0 +1,2 @@
+1.批量清除redis缓存
+redis-cli -h r-uf6fd728120914b4.redis.rds.aliyuncs.com -a Gerry1512 keys "MCT_101_*" | xargs redis-cli -h r-uf6fd728120914b4.redis.rds.aliyuncs.com -a Gerry1512 del

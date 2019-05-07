@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx  
+  labels: 
+    name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: nginx
+  template:
+    metadata:
+      labels:
+        name: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html
+              name: nfsdata
+          env:
+            - name: FOR_GODS_SAKE_PLEASE_REDEPLOY
+              value: 'THIS_STRING_IS_REPLACED_DURING_BUILD'
+      imagePullSecrets:
+        - name: registrykey-1
+      volumes:
+        - name: nfsdata
+          nfs:
+            server: 10.29.46.54
+            path: /data/nfs/static

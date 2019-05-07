@@ -1,0 +1,8 @@
+1.update
+@Modifying
+@Query("update ShopCoupon sc set sc.deleted = true where sc.id in :ids")
+public void deleteByIds(@Param(value = "ids") List<String> ids);
+
+@Modifying
+@Query("update User u set u.firstname = ?1 where u.lastname = ?2")
+int setFixedFirstnameFor(String firstname, String lastname);

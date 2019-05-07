@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  labels: 
+    name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis
+  template:
+    metadata:
+      labels:
+        name: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379 
+          volumeMounts:
+            - mountPath: /data
+              name: nfsdata
+            - mountPath: /usr/local/etc/redis/redis.conf
+              name: nfsdata
+              subPath: conf/redis.conf
+          env:
+            - name: FOR_GODS_SAKE_PLEASE_REDEPLOY
+              value: 'ATHIS_STRING_IS_REPLACED_DURING_BUILD'
+          command: ["redis-server"]
+          args: ["/usr/local/etc/redis/redis.conf", "--appendonly yes"]
+      imagePullSecrets:
+        - name: registrykey-1
+      volumes:
+        - name: nfsdata
+          nfs:
+            server: 10.29.46.54
+            path: /data/nfs/redis
