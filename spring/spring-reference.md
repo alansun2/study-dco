@@ -59,7 +59,7 @@
 ## Spring框架概述
 spring是一个轻量的java企业级应用开发框架，它提供了开发Java企业级应用的一切，同时支持Groovy和Kotlin，可根据应用程序的需要灵活地创建多种体系结构。spring5.1后最低支持到jdk8而且为jdk11提供了开箱即用。
 
-### 1.“spring”是什么意思？
+### 1.“spring”是什么意思
 "spring"在不同的情况下表达不同的意思。它可以用来引用Spring Framework框架本身，它就是一切开始的地方。随着时间的推移，其他Spring项目已经构建在Spring Framework之上（比如springboot，spring-cloud）。大多数情况下，我们说“spring”
 它是指整个整个spring家族。**此参考文档是基于该基础：Spring Framework本身（不包括如spring-boot等）**。
 
@@ -81,11 +81,6 @@ For use in Jigsaw-enabled applications, the Spring Framework 5 jars come with "A
 ### 4.反馈和贡献
 ### 5.开始
 
-[TOC]
-
-* [1.5 bean scopes](#1.5)
-    * [1.5.3  单例bean依赖原型bean](#1.5.3)
-    * [1.5.4 Request, Session, Application, and WebSocket Scopes](#1.5.4)
 ## 核心技术
 这部分参考文档涵盖了Spring Framework绝对不可或缺的所有技术。
 
