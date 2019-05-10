@@ -18,3 +18,8 @@ ConfigurationClassPostProcessor
 
 
 FactoryBean BeanFactory
+
+AbstractBeanFactory中获取bean -> doGetBean -> getObjectForBeanInstance 
+该bean可能普通bean也可能是factoryBean（FactoryBean前面有`&`符号）
+
+如果是FactoryBean通过FactoryBeanRegisterSupport的getObjectFromFactoryBean
