@@ -1,0 +1,49 @@
+dataSourceKey: defaultDS
+destination: test
+groupId: g1
+esMapping:
+  _index: c2c_supplier_goods_info
+  _type: _doc
+  _id: _id
+  upsert: true
+#  pk: id
+  sql: "SELECT 
+	sga.id as		_id,
+	sga.id   as               applyId,
+       sga.supplier_id as        supplierId,
+       sga.goods_name    as      goodsName,
+       sga.goods_image     as    goodsImage,
+       sga.goods_home_image  as  goodsHomeImage,
+       sga.goods_description as  goodsDescription,
+       sga.goods_specification as goodsSpecification,
+       sga.cost_price       as   costPrice,
+       sga.`status`         as   applyStatus,
+       sga.first_type_id   as    firstTypeId,
+       sga.second_type_id  as    secondTypeId,
+       sga.goods_id        as    goodsId,
+       sga.suggest_price   as    suggestPrice,
+       sga.expiration_date  as   expirationDate,
+       sga.pruduct_date     as   pruductDate,
+       sga.pruduct_address  as   pruductAddress,
+       sga.service_charge   as   serviceCharge,
+       gi.stock,
+       gi.status as            goodsStatus,
+       gt1.type_name    as       firstTypeName,
+       gt.type_name      as      secondTypeName,
+       sgi.urls  	 as      detailImages
+FROM ehu_c2c.supplier_goods_apply sga
+         LEFT JOIN ehu_c2c.goods_info gi ON sga.goods_id = gi.goods_id
+         LEFT JOIN ehu_c2c.goods_type gt ON gt.type_id = sga.second_type_id
+         LEFT JOIN ehu_c2c.goods_type gt1 ON gt1.type_id = sga.first_type_id
+         LEFT JOIN (
+            SELECT
+                apply_id,
+                GROUP_CONCAT(url) urls
+            FROM ehu_c2c.supplier_goods_image
+            WHERE type = 2
+            GROUP BY apply_id
+        ) sgi ON sga.id = sgi.apply_id"
+#  objFields:
+#    _labels: array:;
+  etlCondition: "where sga.id >= {}"
+  commitBatch: 3000

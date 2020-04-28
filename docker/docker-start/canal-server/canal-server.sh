@@ -1,0 +1,14 @@
+sh /data/start/canal-server/run.sh log_path=/data/docker_data/canal-server/logs \
+		  -e canal.auto.scan=false \
+		  -e canal.destinations=test \
+		  -e canal.instance.global.spring.xml=classpath:spring/default-instance.xml \
+		  -e canal.register.ip=10.47.176.123 \
+		  -e canal.zkServers=xxxx:2181,xxxx:2181,xxxx:2181 \
+		  -e canal.instance.mysql.slaveId=1234 \
+		  -e canal.instance.master.address=xxxx:3306 \
+		  -e canal.instance.dbUsername=root \
+		  -e canal.instance.dbPassword=xxxx \
+		  -e canal.instance.connectionCharset=UTF-8 \
+		  -e canal.instance.tsdb.enable=true \
+		  -e canal.instance.gtidon=false \
+		  -e canal.instance.filter.regex=database\\.goods_info,database\\.goods_image

@@ -1,0 +1,39 @@
+0xff
+
+volatile
+
+threadLocal
+
+CountDownLatch
+
+Lock
+
+callAble
+
+ApplicationEventPublisherAware ApplicationEventMulticaster 观察者模式
+
+Lifecycle 
+
+LifecycleProcessor
+
+spring中的设计模式
+ApplicationEventMulticaster 观察者模式
+
+spring通过PropertyPlaceholderConfigurer（已被废弃） PropertySourcesPlaceholderConfigurer解析标准的java属性文件
+
+也支持复合属性名称，只要路径的每个组件（重写的最终属性除外）都已经非空（可能由构造函数初始化）。
+在下面的示例中，tom bean的`fred`属性的`bob`属性的`sammy`属性设置为标量值123：
+```
+tom.fred.bob.sammy=123
+```
+
+> 指定的覆盖值始终是文字值。它们不会被翻译成bean引用。当XML bean定义中的原始值指定bean引用时，此约定也适用。
+
+使用Spring 2.5中引入的上下文命名空间，可以使用专用配置元素配置属性覆盖，如以下示例所示：
+```
+<context:property-override location="classpath:override.properties"/>
+```
+
+docker run -p 40031:8080 --network bridge \
+-e "SPRING_BOOT_ADMIN_CLIENT_INSTANCE_SERVICE-URL=http://106.14.76.156:40031" \
+-v /data/nfs/bak/ehu-presell/app.jar:/app.jar  -v /data/nfs/appdata:/opt/appdata  -v /opt/logs/presell:/opt/logs/presell -v /data/nfs/fonts:/opt/jdk1.8.0_162/jre/lib/fonts -it --name ehu-presell -h ehu-presell registry.cn-shanghai.aliyuncs.com/ehoo/spring-boot:1.0.0

@@ -1,0 +1,23 @@
+dataSourceKey: defaultDS
+destination: test
+groupId: g1
+esMapping:
+  _index: goods_info
+  _type: _doc
+  _id: _id
+  upsert: true
+#  pk: id
+  sql: "select a.goods_id as _id, a.goods_id as goodsId, a.status, a.goods_name as goodsName, a.goods_description as goodsDescription,
+	a.goods_home_image as goodsHomeImage, a.goods_image as goodsImage, a.goods_score as goodsScore, a.goods_type as goodsType,
+	b.type_name as typeName, a.stock, a.cost_price as costPrice, a.original_price as originalPrice, a.current_price as currentPrice,
+	a.purchase_limit as purchaseLimit, a.goods_sort as goodsSort, a.label_id as labelId, c.label_name as labelName, a.percentage_switch as percentageSwitch,
+	a.is_recommend as isRecommend, a.auto_shelf as autoShelf, a.shelf_time as shelfTime, a.obtained_time as obtainedTime,
+	a.goods_type_id as goodsTypeId, a.stock_id as stockId, a.supplier_id as supplierId, a.input_tax as inputTax, a.output_tax as outputTax,
+	a.service_charge as serviceCharge, a.service_time as serviceTime, a.create_time as createTime, a.update_time as updateTime, a.version
+        from ehu_presell.goods_info a
+        left join ehu_presell.goods_type b on b.type_id=a.goods_type_id
+	left join ehu_presell.goods_label c on c.label_id = a.label_id"
+#  objFields:
+#    _labels: array:;
+  etlCondition: "where a.goods_id>={}"
+  commitBatch: 3000

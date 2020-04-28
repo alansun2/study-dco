@@ -1,0 +1,55 @@
+dataSourceKey: defaultDS
+destination: test
+groupId: g1
+esMapping:
+  _index: c2c_goods_info
+  _type: _doc
+  _id: _id
+  upsert: true
+#  pk: id
+  sql: "SELECT
+	gi.goods_id		_id,
+	gi.status,
+       gi.goods_id            goodsId,
+       gi.goods_name          goodsName,
+       gi.goods_image         goodsImage,
+       gi.cost_price          costPrice,
+       gi.current_price       currentPrice,
+       gi.original_price      originalPrice,
+       gi.goods_specification goodsSpecification,
+       gi.goods_description   goodsDescription,
+       gi.goods_home_image    goodsHomeImage,
+       gi.purchase_limit      purchaseLimit,
+       gi.service_charge      serviceCharge,
+       gi.first_type_id       firstTypeId,
+       gi.second_type_id      secondTypeId,
+       gi.is_recommend        isRecommend,
+       gi.goods_score         goodsScore,
+       gi.goods_sort          goodsSort,
+       gi.goods_type          goodsType,
+       gi.shelf_time          shelfTime,
+       gi.obtained_time       obtainedTime,
+       gi.service_time        serviceTime,
+       gi.create_time         createTime,
+       gi.supplier_id         supplierId,
+       gi.city_id             cityId,
+       gt.type_name           firstTypeName,
+       gt.type_name           secondTypeName,
+       gi.stock,
+       gim.urls               detailImages,
+       gi.status              goodsStatus,
+       gi.status              supplierGoodsStatus
+FROM goods_info gi
+         LEFT JOIN goods_type gt ON gi.first_type_id = gt.type_id
+         LEFT JOIN goods_type gt1 ON gi.second_type_id = gt.type_id
+         LEFT JOIN (
+    SELECT goods_id,
+           GROUP_CONCAT(url) urls
+    FROM goods_image
+    WHERE type = 2
+    GROUP BY goods_id
+) gim ON gi.goods_id = gim.goods_id"
+#  objFields:
+#    _labels: array:;
+  etlCondition: "where gi.goods_id >= {}"
+  commitBatch: 3000

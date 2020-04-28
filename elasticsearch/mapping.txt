@@ -1,0 +1,499 @@
+GET  /post/_doc/_search
+{
+    "query": {
+        "match_all": {}
+    }
+}
+
+GET  /goods_info/_doc/1353
+
+GET  _cat/indices?pretty
+
+DELETE  /post?pretty
+
+POST  _reindex
+{
+    "source": {
+        "index": "goods_info"
+    },
+    "dest": {
+        "index": "goods_info1"
+    }
+}
+
+GET  /_cluster/health?pretty
+
+GET  /goods_info/_mapping
+
+PUT  /post/_doc/1
+{ 
+  "goodsName":  "火龙果" 
+} 
+
+GET  /post/_doc/1
+
+POST  /post/_search
+{
+    "suggest": {
+        "third-suggestion": {
+            "prefix": "huolongguo",
+            "completion": {
+                "field": "goodsName"
+            }
+        }
+    }
+}
+
+GET  /post/_analyze
+{
+    "text": [
+        "火龙果"
+    ],
+    "field": "goodsName"
+}
+
+PUT  /post?pretty&include_type_name=true
+{
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+        "analysis": {
+            "analyzer": {
+                "pinyin_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "my_pinyin"
+                },
+                "ik_max_word_pinyin_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "ik_max_word",
+                    "filter": "pinyin_filter"
+                },
+                "default": {
+                    "type": "ik_max_word"
+                }
+            },
+            "filter": {
+                "pinyin_filter": {
+                    "type": "pinyin",
+                    "keep_first_letter": false,
+                    "keep_full_pinyin": false,
+                    "keep_joined_full_pinyin": true,
+                    "limit_first_letter_length": 16,
+                    "keep_none_chinese_in_joined_full_pinyin": true
+                },
+                "synonym": {
+                    "type": "synonym",
+                    "synonyms_path": "analysis/synonym.txt"
+                }
+            },
+            "tokenizer": {
+                "my_pinyin": {
+                    "type": "pinyin",
+                    "keep_joined_full_pinyin": true,
+                    "limit_first_letter_length": 16
+                }
+            }
+        }
+    },
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "goodsName": {
+                    "type": "completion",
+                    "analyzer": "pinyin_analyzer"
+                }
+            }
+        }
+    }
+}
+
+DELETE  /goods_info
+
+PUT  /c2c_goods_info?pretty&include_type_name=true
+{     "settings":  {
+    "number_of_shards": 3,
+    "number_of_replicas": 1,
+    "analysis": {
+        "analyzer": {
+            "pinyin_analyzer": {
+                "type": "custom",
+                "tokenizer": "my_pinyin"
+            },
+            "ik_max_word_pinyin_analyzer": {
+                "type": "custom",
+                "tokenizer": "ik_max_word",
+                "filter": "pinyin_filter"
+            },
+            "default": {
+                "type": "ik_max_word"
+            }
+        },
+        "filter": {
+            "pinyin_filter": {
+                "type": "pinyin",
+                "keep_first_letter": false,
+                "keep_full_pinyin": false,
+                "keep_joined_full_pinyin": true,
+                "limit_first_letter_length": 16,
+                "keep_none_chinese_in_joined_full_pinyin": true
+            },
+            "synonym": {
+                "type": "synonym",
+                "synonyms_path": "analysis/synonym.txt"
+            }
+        },
+        "tokenizer": {
+            "my_pinyin": {
+                "type": "pinyin",
+                "keep_joined_full_pinyin": true,
+                "limit_first_let ter_length": 16
+            }
+        }
+    }
+},
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "goodsId": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "byte"
+        },
+        "goodsName": {
+          "type": "keyword",
+          "ignore_above": 1024,
+          "fields": {
+            "ikm": {
+              "type": "text",
+              "analyzer": "ik_max_word"
+            },
+            "ikmp":{
+              "type": "text",
+              "analyzer": "ik_max_word_pinyin_analyzer"
+            },
+            "comp_suggest": {
+              "type": "completion"
+            }
+          }
+        },
+        "goodsDescription": {
+          "type": "keyword",
+          "ignore_above": 1024,
+          "fields": {
+            "ikm": {
+              "type": "text",
+              "analyzer": "ik_max_word"
+            }
+          }
+        },
+        "goodsHomeImage": {
+          "type": "keyword"
+        },
+        "goodsImage": {
+          "type": "keyword"
+        },
+        "goodsScore": {
+          "type": "keyword"
+        },
+        "goodsType": {
+          "type": "keyword"
+        },
+        "typeName": {
+          "type": "keyword"
+        },
+        "stock": {
+          "type": "integer"
+        },
+        "costPrice": {
+          "type": "double"
+        },
+        "originalPrice": {
+          "type": "double"
+        },
+        "currentPrice": {
+          "type": "double"
+        },
+        "purchaseLimit": {
+          "type": "integer"
+        },
+        "goodsSort": {
+          "type": "integer"
+        },
+        "labelId": {
+          "type": "integer"
+        },
+        "labelName": {
+          "type": "keyword"
+        },
+        "percentageSwitch": {
+          "type": "byte"
+        },
+        "isRecommend": {
+          "type": "byte"
+        },
+        "autoShelf": {
+          "type": "byte"
+        },
+        "shelfTime": {
+          "type": "date"
+        },
+       "obtainedTime": {
+          "type": "date"
+        },
+        "goodsTypeId": {
+          "type": "integer"
+        },
+        "stockId": {
+          "type": "integer"
+        },
+        "supplierId": {
+          "type": "integer"
+        },
+        "inputTax": {
+          "type": "double"
+        },
+        "outputTax": {
+          "type": "double"
+        },
+        "serviceCharge": {
+          "type": "double"
+        },
+        "serviceTime": {
+          "type": "date"
+        },
+        "createTime": {
+          "type": "date"
+        },
+        "updateTime": {
+          "type": "date"
+        },
+        "version": {
+          "type": "integer"
+        }
+      }
+  }
+  }
+}
+
+PUT  /c2c_supplier_goods_info?pretty&include_type_name=true
+{
+    "settings": {
+        "number_of_shards": 3,
+        "number_of_replicas": 1,
+        "analysis": {
+            "analyzer": {
+                "pinyin_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "my_pinyin"
+                },
+                "ik_max_word_pinyin_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "ik_max_word",
+                    "filter": "pinyin_filter"
+                },
+                "default": {
+                    "type": "ik_max_word"
+                }
+            },
+            "filter": {
+                "pinyin_filter": {
+                    "type": "pinyin",
+                    "keep_first_letter": false,
+                    "keep_full_pinyin": false,
+                    "keep_joined_full_pinyin": true,
+                    "limit_first_letter_length": 16,
+                    "keep_none_chinese_in_joined_full_pinyin": true
+                },
+                "synonym": {
+                    "type": "synonym",
+                    "synonyms_path": "analysis/synonym.txt"
+                }
+            },
+            "tokenizer": {
+                "my_pinyin": {
+                    "type": "pinyin",
+                    "keep_joined_full_pinyin": true,
+                    "limit_first_let ter_length": 16
+                }
+            }
+        }
+    },
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "applyId": {
+                    "type": "integer"
+                },
+                "goodsId": {
+                    "type": "integer"
+                },
+                "supplierId": {
+                    "type": "integer"
+                },
+                "goodsName": {
+                    "type": "keyword",
+                    "ignore_above": 1024,
+                    "fields": {
+                        "ikm": {
+                            "type": "text",
+                            "analyzer": "ik_max_word"
+                        },
+                        "ikmp": {
+                            "type": "text",
+                            "analyzer": "ik_max_word_pinyin_analyzer"
+                        },
+                        "comp_suggest": {
+                            "type": "completion"
+                        }
+                    }
+                },
+                "goodsDescription": {
+                    "type": "keyword",
+                    "ignore_above": 1024
+                },
+                "goodsHomeImage": {
+                    "type": "keyword"
+                },
+                "goodsImage": {
+                    "type": "keyword"
+                },
+                "goodsSpecification": {
+                    "type": "keyword"
+                },
+                "costPrice": {
+                    "type": "double"
+                },
+                "applyStatus": {
+                    "type": "byte"
+                },
+                "firstTypeId": {
+                    "type": "integer"
+                },
+                "secondTypeId": {
+                    "type": "integer"
+                },
+                "suggestPrice": {
+                    "type": "double"
+                },
+                "expirationDate": {
+                    "type": "date"
+                },
+                "pruductDate": {
+                    "type": "date"
+                },
+                "pruductAddress": {
+                    "type": "keyword"
+                },
+                "serviceCharge": {
+                    "type": "double"
+                },
+                "stock": {
+                    "type": "integer"
+                },
+                "goodsStatus": {
+                    "type": "byte"
+                },
+                "detailImages": {
+                    "type": "keyword"
+                },
+                "supplierGoodsStatus": {
+                    "type": "byte"
+                },
+                "firstTypeName": {
+                    "type": "keyword"
+                },
+                "secondTypeName": {
+                    "type": "keyword"
+                }
+            }
+        }
+    }
+}
+
+GET /goods_info/_analyze
+{
+  "text": ["火檬"],
+  "analyzer": "ik_max_word_pinyin_analyzer"
+}
+
+POST /goods_info/_search
+{ 
+  "suggest": {
+     "third-suggestion": {
+      "text": "qing",
+      "term": {
+        "suggest_mode": "always",
+        "min_word_length": 1,
+        "field": "goodsName.sp",
+        "analyzer": "pinyin_analyzer",
+        "string_distance": "jaro_winkler"
+      }
+    },
+    "fourth-suggestion": {
+      "text": "紫甘",
+      "term": {
+        "suggest_mode": "always",
+        "min_word_length":1,
+        "field": "goodsName.ikm",
+        "analyzer": "ik_max_word",
+        "string_distance": "jaro_winkler"
+      }
+    },
+    "fourt-suggestion": {
+      "text": "兰",
+      "term": {
+        "suggest_mode": "always",
+        "min_word_length": 1,
+        "field": "goodsName.ikm",
+        "analyzer": "ik_max_word",
+        "string_distance": "jaro_winkler"
+      }
+    },
+    "fi-suggestion": {
+      "text": "火龙",
+      "term": {
+        "suggest_mode": "always",
+        "min_word_length":1,
+        "field": "goodsName.ikm",
+        "prefix_length": 1,
+        "string_distance": "jaro_winkler"
+      }
+    }
+  }
+}
+
+GET /goods_info/_search?q=goodsName.ikmp:huolong&sort=goodsName:desc&explain
+
+GET /goods_info/_search
+{
+  "query": {
+    "match":{
+      "goodsName.ikmp": "huolong"
+    }
+  },
+  "from": 0,
+  "size": 10,
+  "sort": [
+    {
+      "stock": {
+        "order": "desc"
+      }
+    },
+    {
+      "goodsSort": {
+        "order": "asc"
+      }
+    },
+    {
+      "goodsId": {
+        "order": "asc"
+      }  
+    }
+  ]
+}
+
+# 缓存
+GET /_stats/request_cache?human
+GET /_nodes/stats/indices/request_cache?human
+POST /_all/_cache/clear?request=true

@@ -1,0 +1,1 @@
+请根据canal-adapter.sh 的设置把文件夹 conf 放到指定目录

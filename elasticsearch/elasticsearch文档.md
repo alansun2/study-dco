@@ -1,4 +1,10 @@
 # elasticsearch记录
+## 概念
+### index 
+index 是一个或多个物理分片的组合
+### shard
+shard 有两种 primary 和 replic。 主分片数在索引创建时固定，副本分片数可以在任何时候修改
+
 ## 1.查看集群状态：
     curl -X GET "localhost:9200/_cat/health?v"
 ## 2.查看节点
@@ -684,6 +690,8 @@ elatisearch是分布式的，当创建，更新，删除文档时，都会同步
 >`false` 
 
 >`wait_for` 等待更新。默认是1秒i.g. 操作后会等待1秒然后刷新，但是他会影响返回的时间。 通过index.refresh_interval设置。不支持在查询API中使用该值
+
+### 2. must_not 相当于 filter，不参与评分
 
 
 

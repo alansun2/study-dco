@@ -14,3 +14,7 @@ xsi:noNamespaceSchemaLocation
 
 
 dagger2
+
+redisson
+
+guice

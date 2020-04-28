@@ -5079,6 +5079,7 @@ public void handleContextStart() {
 ```
 还可以通过使用定义SpEL表达式的注释的`condition`属性来添加额外的运行时过滤，该表达式应匹配以实际调用特定事件的方法。
 
+
 以下示例显示了仅当事件的`content`属性等于`my-event`时，才能重写我们的通知程序以进行调用：
 ```
 @EventListener(condition = "#blEvent.content == 'my-event'")
@@ -5089,7 +5090,189 @@ public void processBlackListEvent(BlackListEvent blEvent) {
 每个SpEL表达式都针对专用上下文进行评估。下表列出了可用于上下文的项目，以便您可以将它们用于条件事件处理：
 
 *Table 8. Event SpEL available metadata*
+
 Name | Location | Description | Example
 ::|::|::|::
 Event | root object | 实际的ApplicationEvent | #root.event
-参数数组 | root object
+参数数组 | root object | 用于调用目标的参数（作为数组）。| #root.args[0]
+参数名称 | evaluation context | 任何方法参数的名称。如果由于某种原因，名称不可用（例如，因为没有调试信息），参数名称也可以在`#a<#arg>`下获得，其中`#arg`代表参数索引（从0开始）。 | `#blEvent` or `#a0` (you can also use `#p0` or  `#p<#arg>` notation as an alias)
+
+请注意，即使您的方法签名实际引用已发布的任意对象，`#root.event`也允许您访问基础事件。
+
+如果您需要作为处理其他事件的结果发布事件(处理完事件后再发布一个事件)，则可以更改方法签名以返回应发布的事件，如以下示例所示：
+```
+@EventListener
+public ListUpdateEvent handleBlackListEvent(BlackListEvent event) {
+    // notify appropriate parties via notificationAddress and
+    // then publish a ListUpdateEvent...
+}
+```
+> 异步侦听器不支持这个功能。
+
+这个新方法为上面方法处理的每个`BlackListEvent`发布一个新的`ListUpdateEvent`。
+**如果需要发布多个事件，则可以返回事件集合**。
+
+##### 异步监听器
+如果希望特定侦听器异步处理事件，则可以重用常规[`@Async`](https://docs.spring.io/spring/docs/5.1.6.RELEASE/spring-framework-reference/integration.html#scheduling-annotation-support-async)支持。以下示例显示了如何执行此操作：
+```
+@EventListener
+@Async
+public void processBlackListEvent(BlackListEvent event) {
+    // BlackListEvent is processed in a separate thread
+}
+```
+* 如果事件侦听器抛出异常，则不会将其传播给调用者。有关详细信息，请参阅`AsyncUncaughtExceptionHandler`。
+* 此类事件监听器无法发送回复。如果您需要作为处理结果发送另一个事件，请注入`ApplicationEventPublisher`以手动发送事件。
+
+##### 时间排序
+如果需要在另一个侦听器之前调用一个侦听器，则可以将@Order注释添加到方法声明中，如以下示例所示：
+```
+@EventListener
+@Order(42)
+public void processBlackListEvent(BlackListEvent event) {
+    // notify appropriate parties via notificationAddress...
+}
+```
+
+##### 泛型事件
+您还可以使用泛型来进一步定义事件的结构。考虑使用`EntityCreatedEvent<T>`，其中`T`是创建的实际实体的类型。例如，您可以创建以下侦听器定义以仅接收`Person`的`EntityCreatedEvent`：
+```
+@EventListener
+public void onPersonCreated(EntityCreatedEvent<Person> event) {
+    ...
+}
+```
+由于类型擦除，仅当被触发的事件解析了事件侦听器过滤器的泛型参数时（即类`PersonCreatedEvent`类扩展了`EntityCreatedEvent<Person>{...}`），这才起作用。
+
+在某些情况下，如果所有事件都遵循相同的结构，这可能会变得相当繁琐（前面示例中的事件应该如此）。在这种情况下，您可以实现`ResolvableTypeProvider`来指导框架超出运行时环境提供的范围。以下事件显示了如何执行此操作：
+```
+public class EntityCreatedEvent<T> extends ApplicationEvent implements ResolvableTypeProvider {
+
+    public EntityCreatedEvent(T entity) {
+        super(entity);
+    }
+
+    @Override
+    public ResolvableType getResolvableType() {
+        return ResolvableType.forClassWithGenerics(getClass(), ResolvableType.forInstance(getSource()));
+    }
+}
+```
+> 这不仅适用于`ApplicationEvent`，也适用于作为事件发送的任意对象。
+
+#### 1.15.3 方便地访问低级资源
+为了最佳地使用和理解应用程序上下文，您应该熟悉Spring的资源抽象，如[`Resource`](https://docs.spring.io/spring/docs/5.1.6.RELEASE/spring-framework-reference/core.html#resources)中所述。
+
+应用程序上下文是`ResourceLoader`，可用于加载`Resource`对象。`Resource`本质上是JDK `java.net.URL`类的功能更丰富的版本。实际上，在适当的情况下，`Resource`的实现包装了`java.net.URL`的实例。
+资源可以透明的方式从几乎任何位置获取低级资源，包括从类路径，文件系统位置，任何可用标准URL描述的位置，以及一些其他变体。
+如果资源位置字符串是没有任何特殊前缀的简单路径，那么这些资源来自特定且适合于实际应用程序上下文类型。
+
+您可以配置部署到应用程序上下文中的bean，以实现特殊的回调接口`ResourceLoaderAware`，在初始化时自动回调，应用程序上下文本身作为`ResourceLoader`传入。您还可以公开Resource类型的属性，以用于访问静态资源。
+它们像任何其他属性一样被注入其中。您可以将这些`Resource`属性指定为简单的`String`路径，并在部署Bean时依赖从这些文本字符串到实际`Resource`对象的自动转换。
+提供给`ApplicationContext`构造函数的位置路径实际上是资源字符串，并且以简单的形式根据特定的上下文实现进行适当处理。
+例如，`ClassPathXmlApplicationContext`将简单的位置路径视为类路径位置。您还可以使用具有特殊前缀的位置路径（资源字符串）来强制从类路径或URL加载定义，而不管实际的上下文类型如何。
+
+#### 1.15.4 方便的Web应用程序的`ApplicationContext`实例化
+您可以使用例如`ContextLoader`以声明方式创建`ApplicationContext`实例。当然，您也可以使用其中一个`ApplicationContext`实现以编程方式创建`ApplicationContext`实例。
+
+您可以使用`ContextLoaderListener`注册`ApplicationContext`，如以下示例所示：
+```
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml</param-value>
+</context-param>
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+```
+
+侦听器检查`contextConfigLocation`参数。如果参数不存在，则侦听器将`/WEB-INF/applicationContext.xml`用作默认值。
+当参数确实存在时，侦听器使用预定义的分隔符（逗号，分号和空格）分隔String，并将值用作搜索应用程序上下文的位置。
+还支持Ant样式的路径模式。示例是`/WEB-INF/*Context.xml`（对于名称以Context.xml结尾且位于WEB-INF目录中的所有文件）和`/WEB-INF/**/*Context.xml`（对于所有此类WEB-INF的任何子目录中的文件。
+
+#### 1.15.5 将Spring ApplicationContext部署为Java EE RAR文件
+可以将Spring `ApplicationContext`部署为RAR文件，将上下文及其所有必需的bean类和库JAR封装在Java EE RAR部署单元中。
+这相当于引导能够访问Java EE服务器设施的独立`ApplicationContext`（仅托管在Java EE环境中）。
+RAR部署是部署无头WAR文件的一种更自然的替代方案 - 实际上是一个没有任何HTTP入口点的WAR文件，仅用于在Java EE环境中引导Spring ApplicationContext。
+
+RAR部署非常适用于不需要HTTP入口点但仅包含消息端点和预定作业的应用程序上下文。在这样的上下文中，Bean可以使用应用程序服务器资源，例如JTA事务管理器和JNDI绑定的JDBC `DataSource`实例以及JMS `ConnectionFactory`实例，并且还可以通过Spring的标准事务管理以及JNDI和JMX支持工具向平台的JMX服务器注册。应用程序组件还可以通过Spring的`TaskExecutor`抽象与应用程序服务器的JCA `WorkManager`进行交互。
+
+有关RAR部署中涉及的配置详细信息，请参阅[`SpringContextResourceAdapter`](https://docs.spring.io/spring-framework/docs/5.1.6.RELEASE/javadoc-api/org/springframework/jca/context/SpringContextResourceAdapter.html)类的javadoc。
+
+对于将Spring ApplicationContext简单部署为Java EE RAR文件：
+
+1. 将所有应用程序类打包到一个RAR文件（这是一个具有不同文件扩展名的标准JAR文件）。将所有必需的库JAR添加到RAR存档的根目录中。
+添加`META-INF/ra.xml`部署描述符（如`SpringContextResourceAdapter`的javadoc所示）和相应的Spring XML bean定义文件（通常是`META-INF/applicationContext.xml`）。
+
+2. 将生成的RAR文件放入应用程序服务器的部署目录中。
+
+> 这种RAR部署单元通常是独立的。它们不会将组件暴露给外部世界，甚至不会暴露给同一应用程序的其他模块。与基于RAR的ApplicationContext的交互通常通过与其他模块共享的JMS目标进行。
+> 例如，基于RAR的`ApplicationContext`还可以调度一些作业或对文件系统（或类似物）中的新文件作出反应。
+
+### 1.16 `BeanFactory`
+`BeanFactory` API为Spring的IoC功能提供了基础。它的特定契约主要用于与Spring的其他部分和相关的第三方框架集成，其`DefaultListableBeanFactory`实现是更高级别`GenericApplicationContext`容器中的密钥委托。
+
+`BeanFactory`和相关接口（例如`BeanFactoryAware`，`InitializingBean`，`DisposableBean`）是其他框架组件的重要集成点。通过不需要任何注释或甚至反射，它们允许容器与其组件之间的非常有效的交互。
+应用程序级bean可以使用相同的回调接口，但通常更喜欢通过注释或通过编程配置进行声明性依赖注入。
+
+请注意，核心BeanFactory API级别及其`DefaultListableBeanFactory`实现不会对配置格式或要使用的任何组件注释做出假设。
+所有这些风格都通过扩展（例如`XmlBeanDefinitionReader`和`AutowiredAnnotationBeanPostProcessor`）进行，并作为核心元数据表示在共享`BeanDefinition`对象上运行。
+这是使Spring的容器如此灵活和可扩展的本质。
+
+#### 1.16.1 BeanFactory or ApplicationContext?
+本节介绍`BeanFactory`和`ApplicationContext`容器级别之间的差异以及对引导的影响。
+您应该使用`ApplicationContext`，除非您有充分的理由不这样做，使用`GenericApplicationContext`及其子类`AnnotationConfigApplicationContext`作为自定义引导的常见实现。
+这些是Spring用于所有常见目的的核心容器的主要入口点:配置文件的loading，触发类路径扫描，以编程方式注册bean定义和带注释的类，以及（从5.0开始）注册功能bean定义(functional bean definitions.)。
+
+因为`ApplicationContext`包含`BeanFactory`的所有功能，所以通常建议使用BeanFactory，除了需要完全控制bean处理的场景之外。
+在`ApplicationContext`（例如`GenericApplicationContext`实现）中，按惯例检测到几种bean（即，通过bean名称或bean类型 - 特别是后处理器），而普通的`DefaultListableBeanFactory`对任何特殊bean都是不可知的。
+
+对于许多扩展容器功能，例如注释处理和AOP代理，`BeanPostProcessor`扩展点是必不可少的。
+如果仅使用普通的`DefaultListableBeanFactory`，则默认情况下不会检测到并激活此类后处理器。这种情况可能令人困惑，因为您的bean配置实际上没有任何问题。
+相反，在这种情况下，容器需要通过额外的设置完全自举。
+
+下表列出了`BeanFactory`和`ApplicationContext`接口和实现提供的功能。
+
+*Table 9. Feature Matrix*
+
+Feature | BeanFactory | ApplicationContext
+:- | :-: | :-:
+Bean 实例化/注入 | Yes | Yes
+集成的生命周期管理 | No | Yes
+自动BeanPostProcessor注册 | No | Yes
+自动BeanFactoryPostProcessor注册 | No | Yes
+方便的MessageSource访问（用于内部化） | No | Yes
+内置ApplicationEvent发布机制 | No | Yes
+
+要使用`DefaultListableBeanFactory`显式注册bean后处理器，您需要以编程方式调用`addBeanPostProcessor`，如以下示例所示：
+```
+DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+// populate the factory with bean definitions
+
+// now register any needed BeanPostProcessor instances
+factory.addBeanPostProcessor(new AutowiredAnnotationBeanPostProcessor());
+factory.addBeanPostProcessor(new MyBeanPostProcessor());
+
+// now start using the factory
+```
+
+要将`BeanFactoryPostProcessor`应用于普通的`DefaultListableBeanFactory`，需要调用其`postProcessBeanFactory`方法，如以下示例所示：
+```
+DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+reader.loadBeanDefinitions(new FileSystemResource("beans.xml"));
+
+// bring in some property values from a Properties file
+PropertyPlaceholderConfigurer cfg = new PropertyPlaceholderConfigurer();
+cfg.setLocation(new FileSystemResource("jdbc.properties"));
+
+// now actually do the replacement
+cfg.postProcessBeanFactory(factory);
+```
+在这两种情况下，显式注册步骤都不方便，这就是为什么各种`ApplicationContext`变体比Spring支持的应用程序中的普通`DefaultListableBeanFactory`更受欢迎的原因，
+特别是在典型企业设置中依赖`BeanFactoryPostProcessor`和`BeanPostProcessor`实例来扩展容器功能时。
+
+> `AnnotationConfigApplicationContex`t具有注册的所有通用注释后处理器，并且可以通过配置注释在封面下引入其他处理器，
+> 例如`@EnableTransactionManagement`。在Spring的基于注释的配置模型的抽象级别，bean后处理器的概念变成仅仅是内部容器细节。
+
